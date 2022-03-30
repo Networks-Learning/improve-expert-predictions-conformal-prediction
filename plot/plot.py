@@ -45,7 +45,7 @@ def read_data(dir):
         with open(f"{dir}/set_size_test",'rb') as f:
             size =  pickle.load(f)
     except:
-        size=0
+        size = 0
         pass
 
     with open(f"{dir}/alpha1_test_error","rb") as f:
@@ -58,6 +58,7 @@ def read_data(dir):
 
 
 def print_accuracy_synthetic(split=.15):
+    """Information of Table 1"""
     entries = []
     best = []
     std_error = []
@@ -88,13 +89,14 @@ def print_accuracy_synthetic(split=.15):
 
             pvt_df_std = df_std.pivot(index='Human', columns="Machine", values="Variance")
 
-            annot =   (pvt_df).round(2).astype("string") 
+            annot = (pvt_df).round(2).astype("string") 
 
             print(annot.to_latex())
 
 
 
 def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, run=0):
+    """Figure 2a"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -116,7 +118,7 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
 
         alphas1, alpha_1, alpha_2, perror1, perror2 ,_ = read_data(dir)
         
-        # method 2
+        # fix for method 2
         if method:
             alphas1 = alphas1[alphas1 > alphas1[alpha_1]]
             perror1 = perror2
@@ -148,6 +150,7 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
     plt.savefig(f"{conf.ROOT_DIR}/{acc1}_{acc2}_alpha_sythetic_m{method}.pdf")
 
 def plot_size_alpha_four_confs(method=0,labels=10, acc1=0.5, acc2=0.9, split=0.15, run=0):
+    """Figure 2b"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -196,6 +199,8 @@ def plot_size_alpha_four_confs(method=0,labels=10, acc1=0.5, acc2=0.9, split=0.1
 
 
 def get_mn():
+    """Relative gain in success probability for 
+       all splits and number of labels in synthetic experiments """
     entries = []
     n_cnt = []
     for split in [0.02,0.05,0.1,0.15]:
@@ -229,6 +234,7 @@ def get_mn():
 
 
 def print_accuracy_tables_real():
+    "Information of Table 2"
     entries = []
     best = []
     std_error = []
@@ -260,12 +266,13 @@ def print_accuracy_tables_real():
 
         pvt_df_std = df_std.pivot(columns="Machine", values="Variance")
 
-        annot =   pvt_df.round(3).astype("string") + "$\pm$" + (pvt_df_std).round(3).astype("string")
+        annot =  pvt_df.round(3).astype("string") + "$\pm$" + (pvt_df_std).round(3).astype("string")
 
         print(annot.to_latex())
 
 
 def plot_alpha_real( split=0.15, run=0):
+    """Figure 3a"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -316,6 +323,7 @@ def plot_alpha_real( split=0.15, run=0):
 
 
 def plot_size_alpha_real( split=0.15, run=0):
+    """Figure 3b"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -367,6 +375,7 @@ def plot_size_alpha_real( split=0.15, run=0):
 
 
 def get_m_real():
+    """Relative gain for all splits in real data experiments"""
     entries = []
     for split in [0.02, 0.05, 0.1,0.15]:
         base  = f"results_real/calibrationSet{split}"
@@ -393,6 +402,7 @@ def get_m_real():
 
 
 def real_models_acc(split):
+    """Test set accuracy of DenseNet, PreResNet-110 and ResNet-110"""
     base  = f"results_new/results_real/calibrationSet{split}"
     std_error = []
     d = []
@@ -408,6 +418,7 @@ def real_models_acc(split):
     return df.groupby("model").mean()
 
 def real_human_acc():
+    """Human test set accuracy in real data experiments"""
     err = []
     for r in range(10):
         X_test, X_cal, y_test, y_cal = utils.make_dataset_real(r)                

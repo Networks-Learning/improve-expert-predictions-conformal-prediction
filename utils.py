@@ -25,11 +25,15 @@ def make_dataset(run_no, machine_accuracy):
 
 
 def make_dataset_real(run_no):
+    """Real dataset"""
+
     file_ground_truth = 'densenet-bc-L190-k40'
     with open(f"{conf.ROOT_DIR}/data/{file_ground_truth}.csv", "r") as f:
         csv = np.loadtxt(f, delimiter=',')
+        # Ground truth labels
         y = csv[:,0].astype(int)
-        x = np.arange(10000) # models need only the index of the sample as input
+        # Models need only the index of the sample as input
+        x = np.arange(10000) 
 
     X_test, X_cal_est, y_test, y_cal_est = train_test_split(
         x, y, test_size=2*conf.cal_split, random_state=42+run_no)

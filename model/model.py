@@ -20,8 +20,10 @@ class Model:
         pass
 
 class ModelReal(Model):
+    """Model used in real data experiments"""
     def __init__(self, m_name) -> None:
         super().__init__()
+        # 'm_name' specifies if we are using DenseNet, PreResNet-110 or ResNet-110.
         with open(f"{conf.ROOT_DIR}/data/{m_name}.csv", "r") as f:
             csv = np.loadtxt(f, delimiter=',')
             self.model_logits = csv[:, 11:] 
@@ -45,13 +47,12 @@ class ModelReal(Model):
 
 
 class ModelSynthetic(Model):
+    """Model used in synthetic data experiments"""
     def __init__(self) -> None:
         super().__init__()
         self.model = LogisticRegression(random_state=0,n_jobs=-1, max_iter=1000, multi_class='ovr')
-        self.missing_classes= []
+        self.missing_classes = []
         
-
-
     def predict(self, input):
         return self.model.predict(input)
 
@@ -68,6 +69,7 @@ class ModelSynthetic(Model):
     def train(self, x,y):
         self.model = self.model.fit(x,y)
         # Find which classes the model did not learn at all 
+        # (Needed to fix tensors size later)
         sorted_classes = np.sort(self.model.classes_)
         all_classes = np.arange(conf.n_labels)
         if self.model.classes_.shape[0] < conf.n_labels:

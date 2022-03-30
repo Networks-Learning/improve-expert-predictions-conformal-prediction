@@ -11,11 +11,10 @@ class Expert:
         self.n_labels = conf.n_labels
         Expert.rng = conf.rng
 
-    def predict(self, y, label_set) -> int:
-        "Return prediction"
 
 
 class ExpertReal(Expert):
+    """Expert for real data experiments"""
     def __init__(self, conf) -> None:
         super().__init__(conf)
         self.root_dir = conf.ROOT_DIR
@@ -46,40 +45,24 @@ class ExpertReal(Expert):
 
 
 class ExpertSynthetic(Expert):
+    """Expert for synthetic data experiments"""
     def __init__(self, conf) -> None:
         super().__init__(conf)
         
         self.confusion_matrix = self.create_confusion_matrix(conf.class_probabilities, conf.is_oblivious)
         self.w_matrix = self.get_w_from_confusion_matrix()
-        self.confusion_matrices_a = defaultdict(lambda:[])
 
         self.z_matrix = np.identity(n=self.n_labels)
 
-
-    def predict(self, label_set, label_set_probs) -> int:
-        pred = Expert.rng.choice(a=label_set, p = label_set_probs, replacement=True, shuffle=False)
-        return pred
     
     def pred_prob_given_y_C(self, y, label_set, alpha,update=True):
-       
-       
+        """Probabilities of predicting each label from a prediction set given the true label y"""
         pred_prob = np.zeros(self.n_labels)
         denom = np.sum([np.exp(self.w_matrix[y][l]) for l in label_set])
         for label in label_set:
             pred_prob[label] = np.exp(self.w_matrix[y,label]) / denom
-        
-        if update:
-            # y must be in label_sets
-            self.confusion_matrices_a[y,alpha].append(pred_prob)
 
         return pred_prob
-
-
-    def correct_pred_rate_given_y(self, y,alpha):
-        return np.mean(np.array(self.confusion_matrices_a[y,alpha]), axis=0 )[y]
-
-
-
 
 
     def get_w_from_confusion_matrix(self):
@@ -94,7 +77,7 @@ class ExpertSynthetic(Expert):
        
         ind = list(range(self.n_labels))
         uniform_sol = self.accuracy
-        # assign first the uniform solution for each element of the diagonal of the cm
+        # assign first the uniform solution for each element of the diagonal of the confusion matrix (CM)
         x = np.ones(self.n_labels)*uniform_sol
         while  len(ind) >= 2:
             # pick random pairs of the diagonal
@@ -103,6 +86,7 @@ class ExpertSynthetic(Expert):
             idx2  = Expert.rng.choice(ind)
             ind.remove(idx2)
             
+            # set normalization term
             tmp = idx1
             idx1 = idx1 if a[0][idx1] > a[0][idx2] else idx2
             idx2 = idx2 if tmp==idx1 else tmp
@@ -123,7 +107,7 @@ class ExpertSynthetic(Expert):
         
         cm = np.zeros(shape=(self.n_labels,self.n_labels))
         for i,ac in enumerate(x):
-            # assign the unsiform solution to te off diagonal elements
+            # assign the uniform solution to the off diagonal elements
             uniform_sol = (1 - ac)/(self.n_labels - 1) 
             indices = list(range(i))+list(range(i+1,self.n_labels))
 

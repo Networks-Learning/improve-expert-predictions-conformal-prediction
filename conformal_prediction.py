@@ -23,9 +23,9 @@ class ConformalPrediction:
         pass
 
 class StandardCPgpu(ConformalPrediction):
-    # TODO change name of class not to be misleading
-    # It works with or without GPU 
-    # Implements system with both standard and modified conformal prediction
+    # TODO change name of class not to be misleading.
+    # It works with or without GPU. 
+    # Implements system with both standard and modified conformal prediction.
     """Implementation of the functions of our system"""
     def __init__(self, X_cal, y_cal, X_est, y_est,model, delta) -> None:
         super().__init__(X_cal, y_cal,X_est, y_est, model, delta)
@@ -60,26 +60,26 @@ class StandardCPgpu(ConformalPrediction):
 
     
 
-    def find_a_star(self, w_matrix, a1_star_idx=None, all_a1_a2=False):
-        # TODO change title a_star means ^alpha 
+    def find_a_star(self, w_matrix, a1_star_idx=None):
+        # TODO change name a_star means ^alpha 
         """Return ^alpha"""
         a_star_idx =-1
         curr_criterion = 0
         alphas1 = self.alphas.flatten()
         qhat_a1 = torch.zeros((1,1), device=conf.device)
-        # alphas and qunatiles for shifted quantile method given a_1
         if a1_star_idx is not None: 
-            quant_a1=  (np.ceil((1 - alphas1[a1_star_idx])*(self.calibration_size+1))/self.calibration_size)
+            # alphas and quantiles for shifted quantile method given a_1
+            quant_a1 =  (np.ceil((1 - alphas1[a1_star_idx])*(self.calibration_size+1))/self.calibration_size)
             qhat_a1 = torch.quantile(self.conf_scores_t, quant_a1)
             alphas = self.alphas[self.alphas > self.alphas[a1_star_idx]]
         else:
+            # alphas for standard conformal prediction method
             alphas = self.alphas
 
-        # all qunatiles for each alpha value
+        # all quantiles for each alpha value
         quant_unique =  (np.ceil((1 - alphas)*(self.calibration_size+1))/self.calibration_size).flatten()
+        # initialize estimation error
         self.epsilon = np.zeros(quant_unique.shape)
-        
-
         # output scores for each sample in estimation set
         output_scores = 1 - self.model.predict_prob(self.X_est)
         
@@ -97,13 +97,14 @@ class StandardCPgpu(ConformalPrediction):
             qhats = q.expand(self.calibration_size,conf.n_labels )
            
             # sets[sample][label] is 1 for the labels in the prediction set for each sample
-            # sets for shifted quantile method given a_1
             if a1_star_idx is not None:
+                # sets for shifted quantile method given a_1
                 qhats_a1 = qhat_a1.expand(self.calibration_size,conf.n_labels )
                 sets_upper = torch.where(  output_scores_t <= qhats_a1, 1,0)
                 sets_lower = torch.where(qhats <= output_scores_t, 1,0)
                 sets = sets_upper* sets_lower
             else:
+                # sets for standard conformal prediction method
                 sets = torch.where(output_scores_t<= qhats, 1,0)
             sets_exp_ws = sets * torch.exp(ws_t)
 
@@ -121,21 +122,22 @@ class StandardCPgpu(ConformalPrediction):
             masked_prob = torch.where(true_label_in_sets_idx==1, nominators/denominators, fill_value_t)
             # number of sets that Y \in C_alpha(X) is satisfied
             k_a = true_label_in_sets_idx.sum()        
-            # non empty sets and alpha_star > 0 
+        
             if k_a > 0 :
+                # compute empirical estimation
                 expected_correct_prob = masked_prob.sum()/k_a
-                delta_n_alphas = (alphas.shape[0] /self.delta) if not all_a1_a2 else ((self.calibration_size**2)*(conf.n_labels**2))/self.delta
+                # compute estimation error
+                delta_n_alphas = (alphas.shape[0] /self.delta)
                 epsilon = self.epsilon_fn(k_a, delta_n_alphas)
                 self.epsilon[i] = epsilon
                
+                # Compare current alpha with the best alpha so far
                 coverage = 1 - alphas[i] if not a1_star_idx else (alphas[i] - alphas1[a1_star_idx] - (1/(self.calibration_size + 1)))
                 criterion = coverage*(expected_correct_prob - epsilon)
                 if criterion > curr_criterion:
                     a_star_idx = i
                     curr_criterion = criterion
-        if all_a1_a2:
-            return a_star_idx, curr_criterion
-
+        
         return a_star_idx
 
 
@@ -144,7 +146,7 @@ class StandardCPgpu(ConformalPrediction):
         test_size = len(X_test)
         output_scores = 1 - self.model.predict_prob(X_test)
        
-       # alphas and qunatiles for shifted quantile method
+       # alphas and quantiles for shifted quantile method
         if a_star_idx is not None: 
             quant_a1=  (np.ceil((1 - self.alphas[a_star_idx])*(self.calibration_size+1))/self.calibration_size)
             qhat_a1 = torch.quantile(self.conf_scores_t, quant_a1)
@@ -165,8 +167,8 @@ class StandardCPgpu(ConformalPrediction):
 
             qhats = q.expand(test_size,conf.n_labels )
             # sets[sample][label] is 1 for the labels in the prediction set for each sample
-             # sets for shifted quantile method given alpha_1
             if a_star_idx is not None:
+                # sets for shifted quantile method given alpha_1
                 qhats_a1 = qhat_a1.expand(test_size,conf.n_labels )
                 sets_upper = torch.where(  output_scores_t <= qhats_a1, 1,0)
                 sets_lower = torch.where(qhats <= output_scores_t, 1,0)
@@ -175,7 +177,7 @@ class StandardCPgpu(ConformalPrediction):
                 sets = torch.where(output_scores_t<=qhats, 1,0)
             non_empty_sets = sets.sum(axis=1).count_nonzero()
             
-            if non_empty_sets ==0 :
+            if non_empty_sets==0 :
                 a_empty_sets+=1
 
             # Denominators for  P[\hat Y = y | C_alpha(X), y \in C_alpha(X)]
@@ -187,15 +189,15 @@ class StandardCPgpu(ConformalPrediction):
             # Nomiators for  P[\hat Y = y | C_alpha(X), y \in C_alpha(X)]
             nominators = sets_exp_ws        
         
-            # confusion matrix for each C 
+            # confusion matrix for each prediction set 
             cm = torch.where(denominators>0, nominators/denominators, fill_value_t)
 
             # human prediction from prediction sets
             y_h = cm.multinomial(num_samples=1, replacement=True, generator=conf.torch_rng).squeeze()
 
-            # error for empty sets
-            
+            # Set dummy prediction -1 for empty sets, so that it is counted as misprediction
             y_hats = torch.where(denominators_col>0, y_h , -1)
+            # misprediction probability
             errors = (y_hats!=y_test_t).count_nonzero().double()
             error_rate_per_a[i] = errors/test_size
                
@@ -210,8 +212,8 @@ class StandardCPgpu(ConformalPrediction):
         test_size = len(X_test)
         output_scores = 1 - self.model.predict_prob(X_test)
     
-        # alphas and qunatiles for shifted quantile method
         if a_star_idx is not None: 
+            # alphas and quantiles for shifted quantile method
             quant_a1=  (np.ceil((1 - self.alphas[a_star_idx])*(self.calibration_size+1))/self.calibration_size)
             qhat_a1 = torch.quantile(self.conf_scores_t, quant_a1)
             alphas = np.array([alphas]) if a2_star_idx is not None else self.alphas[self.alphas > self.alphas[a_star_idx]]
@@ -228,8 +230,8 @@ class StandardCPgpu(ConformalPrediction):
 
             qhats = q.expand(test_size,conf.n_labels )
             # sets[sample][label] is 1 for the labels in the prediction set for each sample
-            # sets for shifted quantile method
             if a_star_idx is not None:
+                # sets for shifted quantile method
                 qhats_a1 = qhat_a1.expand(test_size,conf.n_labels )
                 sets_upper = torch.where(  output_scores_t <= qhats_a1, 1,0)
                 sets_lower = torch.where(qhats <= output_scores_t, 1,0)

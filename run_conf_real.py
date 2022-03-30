@@ -10,6 +10,7 @@ import sys
 import datetime
 from tqdm import tqdm
 
+"""Script for real data experiments"""
 
 original_stdout = sys.stdout
 original_stderr = sys.stderr
@@ -24,7 +25,8 @@ if not os.path.exists(results_root):
 
 now = lambda: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-
+# For a given number of calibration and estimation split 
+# run experiments for all combinations of human and models
 for model_name in conf.model_names:
     for run in tqdm(range(conf.n_runs_per_split)):
 
