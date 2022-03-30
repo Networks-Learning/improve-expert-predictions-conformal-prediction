@@ -1,34 +1,71 @@
 # Provably Improving Expert Predictions with Conformal Prediction
+This is a repository containing the code used in the paper [Provably Improving Expert Predictions with Conformal Prediction](https://arxiv.org/abs/2201.12006).
 
-## Install dependences
+## Install Dependences
 
 Experiments ran on python 3.7.3, with GPU. To install the required libraries, set the torch version according to the available device (CPU or GPU) in `requirements.txt` and run:
 
-`pip install -r requirements.txt`
+```pip install -r requirements.txt```
 
-## Running experiments
+## Code Structure
 
-For synthetic experiments run:
+### Automated Decision Support System using Conformal Prediction
+
+`conformal_prediction.py` contains the implementation of the conformal prediction based decision support system with the following key components:
+
+* `find_all_alpha_values` finds all values of $\alpha$ to be examined, using the calibration set 
+* `find_alpha_star` finds the near optimal $\alpha$ value, based on the estimation of the conditional expert's success probability using the estimation set (works for standard and modified conformal prediction). 
+
+### Experimental Setup
+
+* `config.py` contains the configuration details for both the synthetic and real data experiments.
+* `utils.py` contains functions for generating/reading the synthetic and real datasets.
+* `./model/model.py` contains the classes for the models used in the synthetic and real data experiments.
+* `./expert/expert.py` contains the classes for the experts used in the synthetic and real data experiments.
+
+
+### Scripts Executing Experiments
+* `run_conf_synthetic.py` runs the synthetic experiments. It takes as parameters the label space size, the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all combinations of experts and models with success probabilities $\in\{0.3,0.5,0.7,0.9\}$.
+* `run_conf_real.py` runs the real experiments. It takes as parameters  the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all the 3 combinations of the expert with the pre-trained models.
+
+### Evaluation and Plots
+The above scripts compute and store also the average human misprediction rate on test set, while using the decision support system. Moreover:
+* `synthetic_avg_size.py` copmutes and stores the average prediction set size for each of the examined values of $\alpha$ in synthetic data experiments. It takes the same parameters as `run_conf_synthetic.py`.
+* `real_avg_size.py` copmutes and stores the average prediction set size for each of the examined values of $\alpha$ in real data experiments. It takes the same parameters as `run_conf_real.py`.
+* `./plot/plot.py`contains all plotters and the functions that compute all the numerical results reported in the paper.
+* `plots.ipynb` produces the figures appeared in the paper.
+
+
+## Running Experiments
+
+For **synthetic** data experiments run:
 
 `python3 ./run_conf_synthetic.py --n_labels `<*n*\> `--cal_split` <*split*\> `--runs` <*runs*\>
 
 where:
-*  <*n*\> is the the number of labels, i.e. $n$. 
-* <*split*\> is the calibration and estimation split, i.e. $\frac{m}{data\_to\_split}$.
+*  <*n*\> is the total number of labels. 
+* <*split*\> is the calibration and estimation split.
 * <*runs*\> is the number of times that each experiment will run with different random splits of the above specified size.
 
-**Note:** the above runs experiments for  $\mathbb{P}[\hat Y = Y | \mathcal{Y}]\in\{0.3,0.5,0.7,0.9\}$ and classifiers' accuracies also $\in\{0.3,0.5,0.7,0.9\}$.
+Results will be stored under `./results_synthetic`.
 
-For real data experiments run:
+
+For **real** data experiments run (<*split*\> and <*runs*\> same as above):
 
 `python3 ./run_conf_real.py --cal_split` <*split*\> `--runs` <*runs*\>
 
-where <*split*\> and <*runs*\> are the same as above.
+ Results will be stored under `./results_real`.
 
-**Note:** the above runs experiments for all classifiers in the paper.
 
-## Results
+## Citation
+If you use parts of the code in this repository for your own research, please consider citing:
 
-* All plots are produced in `plots.ipynb`. 
-* For the Tables we used the functions `print_accuracy_synthetic()` and `print_accuracy_tables_real()` for synthetic and real data experiments results respectively, in `plot/plot.py`. 
-* For results regarding the relative gain in success probability $\mathbb{P}[\hat{Y}= Y| \mathcal{C}_{\hat{\alpha}}(X)]$ with respect to $\mathbb{P}[\hat{Y}= Y| \mathcal{Y}]$ we used `get_mn()` for synthetic experiments and `get_m_real()` for real data experiments in `plot/plot.py`. 
+```
+@article{straitouri22provably,
+         title={Provably Improving Expert Predictions with Conformal Prediction},
+         author={Straitouri, Eleni and Wang, Lequn and Okati, Nastaran and Rodriguez, Manuel Gomez},
+         journal={arXiv preprint arXiv:2201.12006},
+         year={2022}
+         
+}
+```
