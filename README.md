@@ -1,4 +1,4 @@
-# Provably Improving Expert Predictions with Conformal Prediction
+# improve-expert-predictions-conformal-prediction
 This is a repository containing the code used in the paper [Provably Improving Expert Predictions with Conformal Prediction](https://arxiv.org/abs/2201.12006).
 
 ## Install Dependences
