@@ -25,12 +25,12 @@ Experiments ran on python 3.7.3, with GPU. To install the required libraries, se
 
 
 ### Scripts Executing Experiments
-* `run_conf_synthetic.py` runs the synthetic experiments. It takes as parameters the label space size, the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all combinations of experts and models with success probabilities $\in\{0.3,0.5,0.7,0.9\}$.
-* `run_conf_real.py` runs the real experiments. It takes as parameters  the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all the 3 combinations of the expert with the pre-trained models.
+* `run_conf_synthetic.py` runs the synthetic data experiments. It takes as parameters the label space size, the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all combinations of experts and models with success probabilities $\in\{0.3,0.5,0.7,0.9\}$.
+* `run_conf_real.py` runs the real data experiments. It takes as parameters  the calibration and estimation sets split, and the number of each experiment's repetitions using random splits. It runs experiments for all the 3 combinations of the expert with the pre-trained models.
 
 ### Evaluation and Plots
 The above scripts compute and store also the average human misprediction rate on test set, while using the decision support system. Moreover:
-* `synthetic_avg_size.py` copmutes and stores the average prediction set size for each of the examined values of $\alpha$ in synthetic data experiments. It takes the same parameters as `run_conf_synthetic.py`.
+* `synthetic_avg_size.py` computes and stores the average prediction set size for each of the examined values of $\alpha$ in synthetic data experiments. It takes the same parameters as `run_conf_synthetic.py`.
 * `real_avg_size.py` copmutes and stores the average prediction set size for each of the examined values of $\alpha$ in real data experiments. It takes the same parameters as `run_conf_real.py`.
 * `./plot/plot.py`contains all plotters and the functions that compute all the numerical results reported in the paper.
 * `plots.ipynb` produces the figures appeared in the paper.
