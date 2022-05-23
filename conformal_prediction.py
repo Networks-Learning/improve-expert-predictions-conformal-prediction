@@ -30,10 +30,10 @@ class StandardCPgpu(ConformalPrediction):
     def __init__(self, X_cal, y_cal, X_est, y_est,model, delta) -> None:
         super().__init__(X_cal, y_cal,X_est, y_est, model, delta)
     
-    def epsilon_fn(self, k_a, delta_n_alphas):
+    def epsilon_fn(self, delta_n_alphas):
         """Estimation error"""
         delta_n_alphas_t = torch.tensor(delta_n_alphas)    
-        epsilon =  torch.sqrt((torch.log(delta_n_alphas_t))/(2*k_a))
+        epsilon =  torch.sqrt((torch.log(delta_n_alphas_t))/(2*self.calibration_size))
         return epsilon
 
     def find_all_alpha_values(self):
@@ -42,26 +42,19 @@ class StandardCPgpu(ConformalPrediction):
         model_out = self.model.predict_prob(self.X_cal)
         one_hot = np.eye(conf.n_labels)[self.y_cal]
         true_label_logits = model_out*one_hot
-        
+        # needed for the quantiles afterwards
         conf_scores = sorted(1 - true_label_logits[true_label_logits >0 ])  
         self.conf_scores_t = torch.tensor(conf_scores, device=conf.device)
-        # scores of all predicted labels for each sample in calibration set
-        logits =  self.model.predict_prob(self.X_cal)
-        logits_scores = (1 - logits)
-
-        # all coverages that result in different sets for each sample in calibration set
-        one_minus_alphas = np.searchsorted(conf_scores, logits_scores, side='left')/self.calibration_size
-
-        alphas = 1 - one_minus_alphas[one_minus_alphas < 1]  
-        alphas = alphas[(1-alphas) > 1/self.calibration_size] 
+        # finding alpha values
+        alphas = 1 - (np.arange(1,self.calibration_size+1) / (self.calibration_size + 1))
         self.alphas = alphas
-        self.n_alphas = conf.n_labels*self.calibration_size
+        self.n_alphas = self.calibration_size
         return alphas
 
     
 
-    def find_a_star(self, w_matrix, a1_star_idx=None):
-        # TODO change name a_star means ^alpha 
+    def find_a_star(self, w_matrix, a1_star_idx=None, all_a1_a2=False):
+        # TODO change title a_star means ^alpha 
         """Return ^alpha"""
         a_star_idx =-1
         curr_criterion = 0
@@ -85,10 +78,9 @@ class StandardCPgpu(ConformalPrediction):
         
         # move data to gpu if available
         quants_t = torch.tensor(quant_unique, device=conf.device)
- 
         qhats_t = torch.quantile(self.conf_scores_t, quants_t, keepdim=True)
         qhats_t = qhats_t.unsqueeze(1)
-        y_cal_t = torch.tensor(self.y_est, device=conf.device, dtype=torch.int64)
+        y_est_t = torch.tensor(self.y_est, device=conf.device, dtype=torch.int64)
         fill_value_t =  torch.tensor(0, dtype=torch.double,device=conf.device)
         output_scores_t =  torch.tensor(output_scores,device=conf.device)
         ws_t = torch.tensor(w_matrix[self.y_est], device=conf.device)
@@ -99,8 +91,8 @@ class StandardCPgpu(ConformalPrediction):
             # sets[sample][label] is 1 for the labels in the prediction set for each sample
             if a1_star_idx is not None:
                 # sets for shifted quantile method given a_1
-                qhats_a1 = qhat_a1.expand(self.calibration_size,conf.n_labels )
-                sets_upper = torch.where(  output_scores_t <= qhats_a1, 1,0)
+                qhats_a1 = qhat_a1.expand(self.calibration_size,conf.n_labels)
+                sets_upper = torch.where(output_scores_t <= qhats_a1, 1,0)
                 sets_lower = torch.where(qhats <= output_scores_t, 1,0)
                 sets = sets_upper* sets_lower
             else:
@@ -108,9 +100,9 @@ class StandardCPgpu(ConformalPrediction):
                 sets = torch.where(output_scores_t<= qhats, 1,0)
             sets_exp_ws = sets * torch.exp(ws_t)
 
-             # denominators for all P[\hat Y = Y | C_alpha(X), Y \in C_alpha(X), Y=y]
+             # denominators for all P[\hat Y = Y | C_alpha,  Y \in C_alpha(X), Y=y]
             denominators = torch.sum(sets_exp_ws, axis=1)    
-            one_hot_ycal = F.one_hot(y_cal_t)
+            one_hot_ycal = F.one_hot(y_est_t)
             # mask for prediction sets that include the true label
             mask = sets * one_hot_ycal
             true_label_in_sets_idx = torch.sum(mask, axis=1)
@@ -122,22 +114,24 @@ class StandardCPgpu(ConformalPrediction):
             masked_prob = torch.where(true_label_in_sets_idx==1, nominators/denominators, fill_value_t)
             # number of sets that Y \in C_alpha(X) is satisfied
             k_a = true_label_in_sets_idx.sum()        
-        
+
             if k_a > 0 :
-                # compute empirical estimation
-                expected_correct_prob = masked_prob.sum()/k_a
-                # compute estimation error
-                delta_n_alphas = (alphas.shape[0] /self.delta)
-                epsilon = self.epsilon_fn(k_a, delta_n_alphas)
+                # Empirical estimation of human expexted success probability when choosing from the prediction sets.
+                expected_correct_prob = masked_prob.sum()/self.calibration_size
+                delta_n_alphas = (alphas.shape[0] /self.delta) if not all_a1_a2 else (self.calibration_size*(self.calibration_size - 1)/2)/self.delta
+                # Estimation error
+                epsilon = self.epsilon_fn(delta_n_alphas)
                 self.epsilon[i] = epsilon
-               
-                # Compare current alpha with the best alpha so far
-                coverage = 1 - alphas[i] if not a1_star_idx else (alphas[i] - alphas1[a1_star_idx] - (1/(self.calibration_size + 1)))
-                criterion = coverage*(expected_correct_prob - epsilon)
+                #  Compare current alpha with the best alpha so far
+                criterion = (expected_correct_prob - epsilon)
+
                 if criterion > curr_criterion:
                     a_star_idx = i
                     curr_criterion = criterion
-        
+        if all_a1_a2:
+            # Set when searching for a1, a2
+            return a_star_idx, curr_criterion
+
         return a_star_idx
 
 
@@ -233,7 +227,7 @@ class StandardCPgpu(ConformalPrediction):
             if a_star_idx is not None:
                 # sets for shifted quantile method
                 qhats_a1 = qhat_a1.expand(test_size,conf.n_labels )
-                sets_upper = torch.where(  output_scores_t <= qhats_a1, 1,0)
+                sets_upper = torch.where(output_scores_t <= qhats_a1,1,0)
                 sets_lower = torch.where(qhats <= output_scores_t, 1,0)
                 sets = sets_upper* sets_lower
             else:
