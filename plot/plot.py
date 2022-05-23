@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from config import conf 
+from config import conf
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -88,15 +88,16 @@ def print_accuracy_synthetic(split=.15):
             df_std = pd.DataFrame(std_error, columns=["Human", "Machine", "Variance" ])
 
             pvt_df_std = df_std.pivot(index='Human', columns="Machine", values="Variance")
+            # annot_std = (pvt_df_std).round(2).astype("string") # std error
 
             annot = (pvt_df).round(2).astype("string") 
 
             print(annot.to_latex())
+            # print(annot_std.to_latex())
 
 
 
 def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, run=0):
-    """Figure 2a"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -109,7 +110,7 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
     acc_a_to_df = []
     marker_x = []
     marker_y = []
-    human_str = r'$\mathbb{P}[\hat Y = Y | \mathcal{Y}] = '
+    human_str = r'$\mathbb{P}[\hat Y = Y \,;\, \mathcal{Y}] = '
     machine_str = r'\mathbb{P}[Y^\prime = Y] = '
     for human_accuracy,machine_accuracy in [(acc1,acc2),(acc2,acc2),(acc2,acc1), (acc1,acc1)]:
         base = f"results_synthetic/{labels}labels_calibrationSet{split}"
@@ -118,7 +119,7 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
 
         alphas1, alpha_1, alpha_2, perror1, perror2 ,_ = read_data(dir)
         
-        # fix for method 2
+        # method 2
         if method:
             alphas1 = alphas1[alphas1 > alphas1[alpha_1]]
             perror1 = perror2
@@ -132,15 +133,15 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
         for a, err in list(zip(alphas1, perror1)):
             acc_a_to_df.append((f"{human_str}{human_accuracy}, {machine_str}{machine_accuracy}$", a, 1 - err))
 
-    df = pd.DataFrame(acc_a_to_df, columns=["human_machine", r'$\alpha$', r'$\mathbb{P}[\hat Y =Y | \mathcal{C}_{\alpha}(X)]$'])
+    df = pd.DataFrame(acc_a_to_df, columns=["human_machine", r'$\alpha$', r'$\mathbb{P}[\hat Y =Y \,;\, \mathcal{C}_{\alpha}]$'])
     
    
     markers = {f"{human_str}{acc1}, {machine_str}{acc2}$" : 'X',
                 f"{human_str}{acc2}, {machine_str}{acc2}$": 'X',
                 f"{human_str}{acc2}, {machine_str}{acc1}$": 'o',
                 f"{human_str}{acc1}, {machine_str}{acc1}$": 'o'}
-    ax = sns.scatterplot(data=df, x=r'$\alpha$', y=r'$\mathbb{P}[\hat Y =Y | \mathcal{C}_{\alpha}(X)]$'\
-                , hue="human_machine", style="human_machine" ,markers=markers , palette='colorblind', s=marker_size_main, rasterized=True)
+    ax = sns.scatterplot(data=df, x=r'$\alpha$', y=r'$\mathbb{P}[\hat Y =Y \,;\, \mathcal{C}_{\alpha}]$'\
+                , hue="human_machine", style="human_machine" ,markers=markers , edgecolor=None, palette='colorblind', s=marker_size_main, rasterized=True)
     ax.yaxis.labelpad = 20
     ax.legend(fontsize=legend_font_size, loc='lower left', markerscale=markerscale)
     
@@ -150,7 +151,6 @@ def plot_alpha_four_confs(method=0,labels=10, acc1=0.3, acc2=0.7, split=0.15, ru
     plt.savefig(f"{conf.ROOT_DIR}/{acc1}_{acc2}_alpha_sythetic_m{method}.pdf")
 
 def plot_size_alpha_four_confs(method=0,labels=10, acc1=0.5, acc2=0.9, split=0.15, run=0):
-    """Figure 2b"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -163,7 +163,7 @@ def plot_size_alpha_four_confs(method=0,labels=10, acc1=0.5, acc2=0.9, split=0.1
     size_a_to_df = []
     marker_x = []
     marker_y = []
-    human_str = r'$\mathbb{P}[\hat Y = Y | \mathcal{Y}] = '
+    human_str = r'$\mathbb{P}[\hat Y = Y \,;\, \mathcal{Y}] = '
     machine_str = r'$\mathbb{P}[Y^\prime = Y] = '
     human_accuracy = 0.5
     for machine_accuracy in [acc1,acc2]:
@@ -186,7 +186,7 @@ def plot_size_alpha_four_confs(method=0,labels=10, acc1=0.5, acc2=0.9, split=0.1
     palette = {f"{machine_str}{acc1}$": 'lightgray',f"{machine_str}{acc2}$": 'darkgray'}
 
     ax = sns.scatterplot(data=df, x=r'$\alpha$', y=exp_size_str\
-                , hue="human_machine", hue_order=[f"{machine_str}{acc2}$", f"{machine_str}{acc1}$"], style="human_machine" ,palette=palette,  s=marker_size_main, rasterized=True)
+                , hue="human_machine", hue_order=[f"{machine_str}{acc2}$", f"{machine_str}{acc1}$"], edgecolor=None,style="human_machine" ,palette=palette,  s=marker_size_main, rasterized=True)
     ax.yaxis.labelpad = 20
     ax.legend(fontsize=legend_font_size, loc='upper right', markerscale=markerscale)
 
@@ -205,7 +205,7 @@ def get_mn():
     n_cnt = []
     for split in [0.02,0.05,0.1,0.15]:
         for i, labels in enumerate([10, 50, 100]):
-            base  = f"results_synthetic/{labels}labels_calibrationSet{split}"
+            base = f"results_synthetic/{labels}labels_calibrationSet{split}"
             n_el = 0
             for human_accuracy in conf.accuracies:
                 for machine_accuracy in conf.accuracies:
@@ -233,7 +233,7 @@ def get_mn():
     return mean_df_m, std_df_m, mean_df_n, std_df_n
 
 
-def print_accuracy_tables_real():
+def print_accuracy_tables_real(split):
     "Information of Table 2"
     entries = []
     best = []
@@ -241,7 +241,7 @@ def print_accuracy_tables_real():
  
     values = [r'$\textsc{DenseNet-BC}$', r'$\textsc{PreResNet-110}$',r'$\textsc{ResNet-110}']
     model_name_mapping = dict(zip( conf.model_names, values))
-    for j,split in enumerate([0.15]):
+    for j,split in enumerate([split]):
         entries = []
         base  = f"results_real/calibrationSet{split}"
         std_error = []
@@ -266,13 +266,12 @@ def print_accuracy_tables_real():
 
         pvt_df_std = df_std.pivot(columns="Machine", values="Variance")
 
-        annot =  pvt_df.round(3).astype("string") + "$\pm$" + (pvt_df_std).round(3).astype("string")
+        annot = pvt_df.round(3).astype("string") + "$\pm$" + (pvt_df_std).round(3).astype("string")
 
         print(annot.to_latex())
 
 
 def plot_alpha_real( split=0.15, run=0):
-    """Figure 3a"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -305,10 +304,10 @@ def plot_alpha_real( split=0.15, run=0):
         for a, err in list(zip(alphas1, perror1)):
             acc_a_to_df.append((f"{model_name_mapping[machine_model]}", a, 1 - err))
 
-    df = pd.DataFrame(acc_a_to_df, columns=["model", r'$\alpha$', r'$\mathbb{P}[\hat Y =Y | \mathcal{C}_{\alpha}(X)]$'])
+    df = pd.DataFrame(acc_a_to_df, columns=["model", r'$\alpha$', r'$\mathbb{P}[\hat Y =Y \,;\, \mathcal{C}_{\alpha}]$'])
 
-    ax = sns.scatterplot(data=df, x=r'$\alpha$', y=r'$\mathbb{P}[\hat Y =Y | \mathcal{C}_{\alpha}(X)]$'\
-                , hue="model", style='model', palette='colorblind', s=marker_size_main , rasterized=True)
+    ax = sns.scatterplot(data=df, x=r'$\alpha$', y=r'$\mathbb{P}[\hat Y =Y \,;\, \mathcal{C}_{\alpha}]$'\
+                , hue="model", style='model', palette='colorblind', s=marker_size_main , edgecolor=None,rasterized=True)
     ax.yaxis.labelpad = 20
     ax.legend(fontsize=legend_font_size, loc='lower left',  markerscale=markerscale)
     
@@ -323,7 +322,6 @@ def plot_alpha_real( split=0.15, run=0):
 
 
 def plot_size_alpha_real( split=0.15, run=0):
-    """Figure 3b"""
     mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath,amsfonts, geometry}'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     plt.rcParams.update({
@@ -358,7 +356,7 @@ def plot_size_alpha_real( split=0.15, run=0):
     df = pd.DataFrame(acc_a_to_df, columns=["model",'run', r'$\alpha$', exp_size_str])
 
     ax = sns.scatterplot(data=df, x=r'$\alpha$', y=exp_size_str\
-                , hue="model", style='model', palette='colorblind', s=marker_size_main , rasterized=True)
+                , hue="model", style='model', palette='colorblind', s=marker_size_main ,edgecolor=None, rasterized=True)
 
    
     
@@ -375,7 +373,7 @@ def plot_size_alpha_real( split=0.15, run=0):
 
 
 def get_m_real():
-    """Relative gain for all splits in real data experiments"""
+    """Relative gain in success probability for all splits in real data experiments"""
     entries = []
     for split in [0.02, 0.05, 0.1,0.15]:
         base  = f"results_real/calibrationSet{split}"
@@ -402,9 +400,8 @@ def get_m_real():
 
 
 def real_models_acc(split):
-    """Test set accuracy of DenseNet, PreResNet-110 and ResNet-110"""
-    base  = f"results_new/results_real/calibrationSet{split}"
-    std_error = []
+    """Test set accuracy of pre-trained models"""
+    base  = f"results_real/calibrationSet{split}"
     d = []
     for machine_model in conf.model_names:
         best = []
