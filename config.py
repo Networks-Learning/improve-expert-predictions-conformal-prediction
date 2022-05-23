@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--n_labels", type=int, default=10) 
 parser.add_argument("--cal_split", type=float) 
 parser.add_argument("--runs", type=int, default=5)
-args = parser.parse_args()
+args,unknown = parser.parse_known_args()
 conf = Config()
 
 conf.ROOT_DIR = os.path.dirname(__file__)
