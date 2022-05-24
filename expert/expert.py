@@ -114,9 +114,9 @@ class ExpertSynthetic(Expert):
             cm[i,i] = ac
             while  len(indices) >= 2:
                 # pick random pairs of the off diagonal elements
-                idx1  = Expert.rng.choice(indices)
+                idx1 = Expert.rng.choice(indices)
                 indices.remove(idx1)
-                idx2  = Expert.rng.choice(indices)
+                idx2 = Expert.rng.choice(indices)
                 indices.remove(idx2)
                 # move random mass from the one element to the other
                 epsilon = Expert.rng.normal(0,  uniform_sol/6)

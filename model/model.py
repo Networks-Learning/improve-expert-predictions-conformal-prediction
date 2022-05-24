@@ -73,7 +73,7 @@ class ModelSynthetic(Model):
         sorted_classes = np.sort(self.model.classes_)
         all_classes = np.arange(conf.n_labels)
         if self.model.classes_.shape[0] < conf.n_labels:
-            i =0
+            i = 0
             for j in all_classes:
                 if j == sorted_classes[i]:
                     i+=1
