@@ -1,5 +1,5 @@
 # improve-expert-predictions-conformal-prediction
-This is a repository containing the code used in the paper [Provably Improving Expert Predictions with Conformal Prediction](https://arxiv.org/abs/2201.12006).
+This is a repository containing the code used in the paper [Provably Improving Expert Predictions with Prediction Sets](https://arxiv.org/abs/2201.12006).
 
 ## Install Dependences
 
@@ -62,7 +62,7 @@ If you use parts of the code in this repository for your own research, please co
 
 ```
 @article{straitouri22provably,
-         title={Provably Improving Expert Predictions with Conformal Prediction},
+         title={Provably Improving Expert Predictions with Prediction Sets},
          author={Straitouri, Eleni and Wang, Lequn and Okati, Nastaran and Rodriguez, Manuel Gomez},
          journal={arXiv preprint arXiv:2201.12006},
          year={2022}
