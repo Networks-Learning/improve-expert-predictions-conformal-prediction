@@ -43,7 +43,7 @@ def read_data(dir):
     
     try:
         with open(f"{dir}/set_size_test",'rb') as f:
-            size =  pickle.load(f)
+            size = pickle.load(f)
     except:
         size = 0
         pass
@@ -341,7 +341,7 @@ def plot_size_alpha_real( split=0.15, run=0):
     marker_y = []
    
     for machine_model in conf.model_names:
-        run=0    
+        run = 0    
         dir = f"{base}\{machine_model}_run{run}"
             
         alphas1, alpha_1, alpha_2, perror1, perror2 , size = read_data(dir)
@@ -376,11 +376,11 @@ def get_m_real():
     """Relative gain in success probability for all splits in real data experiments"""
     entries = []
     for split in [0.02, 0.05, 0.1,0.15]:
-        base  = f"results_real/calibrationSet{split}"
+        base = f"results_real/calibrationSet{split}"
         for model in conf.model_names:
             for run in range(10):
                 dir = f"{base}\{model}_run{run}"
-                human_accuracy= 0.95
+                human_accuracy = 0.95
                 with open(f"{dir}/logs.txt", "r") as f:
                     lines = f.readlines()
                     m_tmp = float(lines[3])

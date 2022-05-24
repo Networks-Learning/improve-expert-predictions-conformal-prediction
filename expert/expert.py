@@ -2,7 +2,6 @@ import numpy as np
 from collections import defaultdict
 
 
-
 class Expert:
     rng = None
     def __init__(self, conf) -> None:
@@ -11,8 +10,6 @@ class Expert:
         self.n_labels = conf.n_labels
         Expert.rng = conf.rng
 
-
-
 class ExpertReal(Expert):
     """Expert for real data experiments"""
     def __init__(self, conf) -> None:
@@ -20,8 +17,6 @@ class ExpertReal(Expert):
         self.root_dir = conf.ROOT_DIR
         self.confusion_matrix = self.create_confusion_matrix()
         self.w_matrix = self.get_w_from_confusion_matrix()
-
-
 
     def get_w_from_confusion_matrix(self):
         return np.log(self.confusion_matrix) + 5
@@ -40,8 +35,6 @@ class ExpertReal(Expert):
             idx = np.argwhere(y == i).flatten()
             cm[i] = cm_per_sample[idx].mean(axis=0)
         return cm
-
-
 
 
 class ExpertSynthetic(Expert):
@@ -140,7 +133,3 @@ class ExpertSynthetic(Expert):
         acc_errors += np.abs(s - self.accuracy) >= .01
         print(prob_faults, exp_faults, acc_errors)
         return cm
-
-
-
-
