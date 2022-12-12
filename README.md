@@ -84,7 +84,7 @@ For **real** data experiments run (<*split*\> and <*runs*\> same as above):
 If you use parts of the code in this repository for your own research, please consider citing:
 
 ```
-@article{straitouri22provably,
+@article{straitouri22improving,
          title={Improving Expert Predictions with Prediction Sets},
          author={Straitouri, Eleni and Wang, Lequn and Okati, Nastaran and Rodriguez, Manuel Gomez},
          journal={arXiv preprint arXiv:2201.12006},
