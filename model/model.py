@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 class Model:
+    """Base class of the classifier model"""
     def __init__(self) -> None:
         pass
 
@@ -23,12 +24,12 @@ class ModelReal(Model):
     """Model used in real data experiments"""
     def __init__(self, m_name) -> None:
         super().__init__()
-        # 'm_name' specifies if we are using DenseNet, PreResNet-110 or ResNet-110.
+        # 'm_name' specifies the classifier name, i.e., DenseNet, PreResNet-110 or ResNet-110.
         with open(f"{conf.ROOT_DIR}/data/{m_name}.csv", "r") as f:
             csv = np.loadtxt(f, delimiter=',')
             self.model_logits = csv[:, 11:] 
-            # models keep stored the softmax outputs for each sample
-            # so they need only the index of the correspondent sample to return the softmax output
+            # Models keep stored the softmax outputs for each sample in test set,
+            # so we only need the index of the correspondent sample to get the softmax output
 
     def predict(self, input, return_tensor=False):
         self.model_logits_t = torch.tensor(self.model_logits[input], device=conf.device)
@@ -44,8 +45,6 @@ class ModelReal(Model):
         y_hat = self.predict(input=x)
         return np.mean(y == y_hat)
 
-
-
 class ModelSynthetic(Model):
     """Model used in synthetic data experiments"""
     def __init__(self) -> None:
@@ -58,18 +57,15 @@ class ModelSynthetic(Model):
 
     def predict_prob(self, input):
         ret = self.model.predict_proba(input)
-        # fix model output size with 0 probabilty for unknown classes
+        # Fix model output to return 0 probabilty for unknown classes
         for missing_class in self.missing_classes:
-
             ret = np.insert(ret,missing_class,0.,axis=1)
-    
-
         return ret
 
     def train(self, x,y):
         self.model = self.model.fit(x,y)
         # Find which classes the model did not learn at all 
-        # (Needed to fix tensors size later)
+        # (Needed to fix tensors later)
         sorted_classes = np.sort(self.model.classes_)
         all_classes = np.arange(conf.n_labels)
         if self.model.classes_.shape[0] < conf.n_labels:
@@ -79,9 +75,6 @@ class ModelSynthetic(Model):
                     i+=1
                 else:
                     self.missing_classes.append(j)
-
-
-
 
     def test(self, x, y):
         return self.model.score(x,y)

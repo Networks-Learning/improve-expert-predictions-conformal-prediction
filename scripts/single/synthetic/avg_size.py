@@ -1,16 +1,13 @@
 from config import conf
-from conformal_prediction import StandardCPgpu
-import numpy as np
+from conformal_prediction import ConformalPrediction
 import os
 from expert.expert import ExpertSynthetic
 import pickle
 import utils
 from model.model import ModelSynthetic
-import sys
-import datetime
 from tqdm import tqdm
 
-"""Script for getting the average set size per alpha value in synthetic experiments"""
+"""Script for getting the empirical average set size per alpha value in synthetic experiments"""
 
 results_root = f"{conf.ROOT_DIR}/results_synthetic"
 if not os.path.exists(results_root):
@@ -31,7 +28,7 @@ for human_accuracy in conf.accuracies:
                 os.mkdir(res_dir)
             
             # Generate dataset
-            X_train, X_test,X_cal,X_est, y_train, y_test,y_cal, y_est  = utils.make_dataset(run, machine_accuracy)
+            X_train, X_test, X_cal, X_est, y_train, y_test, y_cal, y_est = utils.make_dataset(run, machine_accuracy)
             
             # Human expert
             conf.accuracy = human_accuracy
@@ -39,24 +36,23 @@ for human_accuracy in conf.accuracies:
 
             # Create model
             model = ModelSynthetic()
-            model.train(X_train,y_train)
+            model.train(X_train, y_train)
             print(model.test(X_test, y_test))
 
-            conf_pred = StandardCPgpu(X_cal, y_cal,X_est, y_est, model, conf.delta)
-            print(res_dir)
+            conf_pred = ConformalPrediction(X_cal, y_cal, X_est, y_est, model, conf.delta)
             
             # Get alpha values
             alphas_dir = f"{res_dir}/alphas1"
             if os.path.exists(alphas_dir):
-                with open(alphas_dir,'rb') as f:
+                with open(alphas_dir, 'rb') as f:
                     alphas = pickle.load(f)
             else:
                 alphas = conf_pred.find_all_alpha_values()
-                with open(alphas_dir,'wb') as f1:
-                    pickle.dump(alphas, f1 ,pickle.HIGHEST_PROTOCOL)
-
+                with open(alphas_dir, 'wb') as f1:
+                    pickle.dump(alphas, f1, pickle.HIGHEST_PROTOCOL)
             
-            size_t = conf_pred.size_given_test_set_per_a(X_test,y_test, human.w_matrix,alphas)
+            size_t = conf_pred.size_given_test_set_per_a(X_test, alphas)
             size = size_t.detach().cpu().numpy()
-            with open(f"{res_dir}/set_size_test",'wb') as f2:
-                pickle.dump(size, f2 ,pickle.HIGHEST_PROTOCOL)
+            with open(f"{res_dir}/alpha1_avg_set_size_test", 'wb') as f2:
+                pickle.dump(size, f2, pickle.HIGHEST_PROTOCOL)
+ 
