@@ -66,7 +66,7 @@ where:
 * <*split*\> is the calibration and estimation split.
 * <*runs*\> is the number of times that each experiment will run with different random splits of the above specified size.
 
-Results will be stored under `./results_synthetic`. To run all experiments for <*n*\> $\in\{10,50,100\}$, <*split*\> $\in \{0.02, 0.05, 0.1, 0.15,\}$ and <*runs*\>$=10$, run:
+Results will be stored under `./results_synthetic`. To run all experiments for <*n*\> $\in\{10,50,100\}$, <*split*\> $\in \{0.02, 0.05, 0.1, 0.15,\}$ and <*runs*\> $=10$, run:
 
 `python3 ./scripts/batch/synthetic/run_all_splits_nlabels.py`
 
@@ -75,7 +75,7 @@ For **real** data experiments run (<*split*\> and <*runs*\> same as above):
 
 `python3  -m scripts.single.real.standard_cp  --cal_split` <*split*\> `--runs` <*runs*\>
 
- Results will be stored under `./results_real`. To run all experiments for <*split*\> $\in \{0.02, 0.05, 0.1, 0.15,\}$ and <*runs*\>$=10$, run:
+ Results will be stored under `./results_real`. To run all experiments for <*split*\> $\in \{0.02, 0.05, 0.1, 0.15,\}$ and <*runs*\> $=10$, run:
 
 `python3 ./scripts/batch/real/run_all_splits.py`
 
