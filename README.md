@@ -84,7 +84,7 @@ For **real** data experiments run (<*split*\> and <*runs*\> same as above):
 If you use parts of the code in this repository for your own research, please consider citing:
 
 ```
-@inproceedings{straitouri22improving,
+@inproceedings{straitouri23improving,
          title={Improving Expert Predictions with Prediction Sets},
          author={Straitouri, Eleni and Wang, Lequn and Okati, Nastaran and Rodriguez, Manuel Gomez},
          booktitle={Proceedings of the 40th International Conference on Machine Learning},
