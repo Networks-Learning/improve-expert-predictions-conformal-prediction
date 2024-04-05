@@ -1,4 +1,4 @@
-# improve-expert-predictions-conformal-prediction
+# Improving Expert Predictions with Prediction Sets
 This is a repository containing the code used in the paper [Improving Expert Predictions with Prediction Sets](https://arxiv.org/abs/2201.12006), ICML 2023.
 
 ## Install Dependencies
