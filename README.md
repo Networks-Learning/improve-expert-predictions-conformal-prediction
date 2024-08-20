@@ -1,5 +1,5 @@
-# Improving Expert Predictions with Prediction Sets
-This is a repository containing the code used in the paper [Improving Expert Predictions with Prediction Sets](https://arxiv.org/abs/2201.12006), ICML 2023.
+# Improving Expert Predictions with Conformal Prediction
+This is a repository containing the code used in the paper [Improving Expert Predictions with Conformal Prediction](https://arxiv.org/abs/2201.12006), ICML 2023.
 
 ## Install Dependencies
 
@@ -85,7 +85,7 @@ If you use parts of the code in this repository for your own research, please co
 
 ```
 @inproceedings{straitouri23improving,
-         title={Improving Expert Predictions with Prediction Sets},
+         title={Improving Expert Predictions with Conformal Prediction},
          author={Straitouri, Eleni and Wang, Lequn and Okati, Nastaran and Gomez-Rodriguez, Manuel},
          booktitle={Proceedings of the 40th International Conference on Machine Learning},
          year={2023}
